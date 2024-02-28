@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reproductor de Video</title>
+  <!-- Agrega el CSS de Plyr -->
+  <link rel="stylesheet" href="https://cdn.plyr.io/3.6.8/plyr.css">
+  <style>
+    body {
+      background-color: #26b4bc;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+    .player {
+      margin-block-start: 100px;
+      position: relative;
+    }
+    .player video {
+      inline-size: 100%;
+      aspect-ratio: 16/9;
+      vertical-align: middle;
+      object-fit: cover;
+    }
+    .wrapper {
+      max-inline-size: 900px;
+      margin: auto;
+    }
+    .player-overlay {
+      position: absolute;
+      inset: 0px;
+      opacity: 0;
+      transition: 2s opacity;
+    }
+    .player:hover .player-overlay {
+      opacity: 1;
+      transition: 0.3s opacity;
+    }
+    .player-overlay .player-title {
+      color: white;
+      position: absolute;
+      inset-block-start: 10px;
+      inset-inline-start: 10px;
+    }
+    .player-overlay .player-accion {
+      position: absolute;
+      inset-block-end: 10px;
+      inset-inline-start: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+    }
+    .player-overlay .player-accion button {
+      background-color: #888;
+      border: none;
+      color: white;
+      font-size: 18px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+    .player-overlay .player-progress {
+      position: absolute;
+      inset-block-end: 50px;
+      inset-inline: 10px;
+      inline-size: calc(100% - 20px);
+      height: 5px;
+      background-color: rgba(255, 255, 255, 0.3);
+      border-radius: 10px;
+    }
+    .player-overlay .player-progress-bar {
+      height: 100%;
+      background-color: #fff;
+      border-radius: 10px;
+      width: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="player">
+      <video id="video" controls>
+        <!-- Ajusta las rutas de los archivos de video según la estructura de tu proyecto -->
+        <source src="1.mp4" type="video/mp4">
+        <source src="2.webm" type="video/webm">
+        <source src="3.mp4" type="video/mp4">
+        <source src="4.mp4" type="video/mp4">
+        <source src="5.mp4" type="video/mp4">
+        <source src="6.mp4" type="video/mp4">
+        <source src="7.mp4" type="video/mp4">
+        <source src="8.mp4" type="video/mp4">
+        <source src="9.mp4" type="video/mp4">
+        <source src="10.mp4" type="video/mp4">
+      </video>
+      <div class="player-overlay">
+        <div class="player-title">Mery y sus Videos de los 80</div>
+        <div class="player-accion">
+          <button class="button" id="backward" aria-label="Video anterior" title="Video anterior">⏪</button>
+          <button class="button" id="play" aria-label="Reproducir" title="Reproducir">▶️</button>
+          <button class="button" id="pause" hidden aria-label="Pausar" title="Pausar">⏸️</button>
+          <button class="button" id="forward" aria-label="Siguiente video" title="Siguiente video">⏩</button>
+        </div>
+        <div class="player-progress">
+          <div class="player-progress-bar" id="progress-bar"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Agrega la biblioteca Plyr.js -->
+  <script src="https://cdn.plyr.io/3.6.8/plyr.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Inicializa Plyr en el video
+      const player = new Plyr('#video', {
+        autoplay: true, // Reproduce automáticamente el video
+        loop: { active: true }, // Repite la reproducción de videos
+      });
+      const videoSources = ['1.mp4', '2.webm', '3.mp4', '4.mp4', '5.mp4', '6.mp4', '7.mp4', '8.mp4', '9.mp4', '10.mp4'];
+      let currentIndex = 0;
+
+      // Función para cambiar la fuente del video al siguiente video
+      function changeVideo() {
+        if (currentIndex < videoSources.length - 1) {
+          currentIndex++;
+        } else {
+          currentIndex = 0; // Si llega al último video, vuelve al primero
+        }
+        player.source = {
+          type: 'video',
+          sources: [
+            {
+              src: videoSources[currentIndex],
+              type: 'video/mp4',
+            },
+          ],
+        };
+        player.play(); // Reproduce automáticamente el nuevo video
+      }
+
+      // Control de botones
+      const playButton = document.getElementById('play');
+      const pauseButton = document.getElementById('pause');
+      const backwardButton = document.getElementById('backward');
+      const forwardButton = document.getElementById('forward');
+      const progressBar = document.getElementById('progress-bar');
+
+      playButton.addEventListener('click', () => {
+        player.play();
+        playButton.hidden = true;
+        pauseButton.hidden = false;
+      });
+
+      pauseButton.addEventListener('click', () => {
+        player.pause();
+        playButton.hidden = false;
+        pauseButton.hidden = true;
+      });
+
+      backwardButton.addEventListener('click', () => {
+        player.rewind(10);
+      });
+
+      forwardButton.addEventListener('click', () => {
+        changeVideo();
+      });
+
+      // Escucha el evento 'timeupdate' para actualizar la barra de progreso
+      player.on('timeupdate', () => {
+        const progress = (player.currentTime / player.duration) * 100;
+        progressBar.style.width = `${progress}%`;
+      });
+
+      // Muestra el nombre del video que se está reproduciendo
+      player.on('play', () => {
+        if (player.source && player.source.currentSrc) {
+          const currentSrc = player.source.currentSrc;
+          const videoName = currentSrc.substring(currentSrc.lastIndexOf('/') + 1);
+          document.querySelector('.player-title').textContent = videoName;
+        }
+      });
+    });
+  </script>
+</body>
+</html>
